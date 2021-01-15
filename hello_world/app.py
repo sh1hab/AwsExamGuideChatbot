@@ -1,12 +1,8 @@
 import json
-import requests
+# import requests
 import pandas as pd
+from datetime import date
 
-def parse_json() -> object:
-    my_sheet = 'Sheet1'
-    file_name: str = 'AWS Examination Question bank.xls'
-    df = pd.read_excel(file_name, sheet_name=my_sheet)
-    print(df, df['Correct Answer'])
 
 def lambda_handler(event, context):
     """Sample pure Lambda function
@@ -29,17 +25,74 @@ def lambda_handler(event, context):
 
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
+    today = date.today()
+    d1 = today.strftime("%d/%m/%Y")
+    # print("d1 =", d1)
 
-    try:
-        ip = requests.get("http://checkip.amazonaws.com/")
-    except Exception as e:
-        # Send some context about this error to Lambda Logs
-        print(e)
+    msg = 'not found'
 
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "hello world",
-            # "location": ip.text.replace("\n", "")
-        }),
+    query = event['currentIntent']['slots']['Query']
+
+    # try:
+    # query = 'Amazon Athena'
+    data = parse_csv()
+    for index in range(0, len(data['Product'])):
+        if data['Product'][index] == query:
+            msg = data['Details'][index]
+            # print(data['Details'][index])
+    # print(data.head(3))
+    # for key, value in data.iteritems():
+        # print(key+' '+value)
+    # print(data['Product'][0])
+    # except Exception as e:
+        # print(e)
+
+    # response = {
+    #     "sessionAttributes": {
+    #     },
+    #     "dialogAction": {
+    #         "type": "Close",
+    #         "fulfillmentState": "Fulfilled",
+    #         "message": {
+    #             "contentType": "PlainText",
+    #             "content": result
+    #         }
+    #     }
+    # }
+
+    
+    return  {
+      "sessionAttributes": { 
+     
+      },
+      "dialogAction": {
+        "type": "Close",
+        "fulfillmentState": "Fulfilled",
+        "message": {
+          "contentType": "PlainText",
+          "content": msg
+          }
+        }
     }
+
+    # return {
+    #     "statusCode": 200,
+    #     "body": json.dumps({
+    #         "message": d1,
+    #         # "csv_data": data,
+    #         "result": msg
+    #         # "location": ip.text.replace("\n", "")
+    #     }),
+    # }
+
+
+def parse_csv():
+    # my_sheet = 'Sheet1'
+    file_name = 'List of AWS Services.csv'
+    # df = pd.read_excel(file_name, sheet_name=my_sheet)
+    data = pd.read_csv(filepath_or_buffer=file_name)
+    # print(data['Product'][0])
+    # print(type(data))
+    # print(data['Product'], type(data['Product']))
+    # print(df, df['Correct Answer'])
+    return data
